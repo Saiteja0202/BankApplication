@@ -6,5 +6,7 @@ import java.util.List;
 public interface TransactionsService {
     List<Transactions> getTransactionsByAccount(Long accountId);
     Transactions getTransactionById(Long id);
+    List<Transactions> getAllTransactions();
+
 }
 

@@ -17,4 +17,7 @@ public interface CardsService {
     String approveDeleteCard(Long cardId, Integer adminId);
 
     List<Cards> getUserCards(Integer userId);
+    
+    List<Cards> getAllCards(Integer adminId);
+
 }

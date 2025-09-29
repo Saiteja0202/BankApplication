@@ -11,12 +11,12 @@ public class Cards {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long card_id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
 
     @Column(unique = true)
-    private String cardNumber; // only generated on approval
+    private String cardNumber; 
 
     @Enumerated(EnumType.STRING)
     private CardType cardType;

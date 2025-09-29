@@ -1,6 +1,7 @@
 package com.bank.controller;
 
 import com.bank.model.Cards;
+import com.bank.model.Deposits;
 import com.bank.service.CardsService;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,5 +62,10 @@ public class CardsController {
     @DeleteMapping("/admin/approve-delete/{adminId}/{cardId}")
     public String approveDelete(@PathVariable Integer adminId, @PathVariable Long cardId) {
         return cardsService.approveDeleteCard(cardId, adminId);
+    }
+    
+    @GetMapping("/all/{adminId}")
+    public List<Cards> getAllCards(@PathVariable Integer adminId) {
+        return cardsService.getAllCards(adminId);
     }
 }

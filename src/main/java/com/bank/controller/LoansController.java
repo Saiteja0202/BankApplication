@@ -5,6 +5,7 @@ import com.bank.service.LoansService;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 @RestController
 @RequestMapping("/loans")
@@ -42,4 +43,14 @@ public class LoansController {
         BigDecimal paidAmount = new BigDecimal(request.get("amount").toString());
         return loansService.payInstallment(loanId, paidAmount);
     }
+    
+    @GetMapping("/all/{adminId}")
+    public List<Loans> getAllLoans(@PathVariable Integer adminId) {
+        return loansService.getAllLoans(adminId);
+    }
+    @GetMapping("/user/{userId}")
+    public List<Loans> getUserLoans(@PathVariable Integer userId) {
+        return loansService.getUserLoans(userId);
+    }
+
 }

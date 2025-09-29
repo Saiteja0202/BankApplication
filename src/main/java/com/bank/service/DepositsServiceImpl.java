@@ -9,7 +9,9 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
+
 @Service
 public class DepositsServiceImpl implements DepositsService {
 
@@ -26,23 +28,36 @@ public class DepositsServiceImpl implements DepositsService {
         this.transactionsRepo = transactionsRepo;
     }
 
+    public BigDecimal depositAmount;
+
     @Override
     public String requestDeposit(Integer userId, Deposits.DepositType depositType, BigDecimal amount,
                                  BigDecimal interestRate, LocalDate maturityDate) {
+        depositAmount = amount;
+
         Users user = usersRepo.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        BigDecimal zeroAmount = BigDecimal.ZERO;
 
         Deposits deposit = new Deposits();
         deposit.setUser(user);
         deposit.setDepositType(depositType);
-        deposit.setAmount(amount);
+        deposit.setAmount(zeroAmount);
         deposit.setInterestRate(interestRate);
         deposit.setMaturityDate(maturityDate);
         deposit.setStatus(Deposits.DepositStatus.PENDING);
         deposit.setRequestStatus(Deposits.RequestStatus.PENDING);
 
-
         depositsRepo.save(deposit);
+
+        Accounts account = accountsRepo.findFirstByUser(user)
+                .orElseThrow(() -> new UserNotFoundException("Account not found"));
+
+        recordTransaction(account, amount,
+                mapDepositTypeToTransactionType(depositType),
+                "REQUEST-DEPOSIT-" + deposit.getDeposit_id(),
+                Transactions.RequestStatus.PENDING);
 
         return "Deposit request submitted. Awaiting admin approval.";
     }
@@ -56,6 +71,7 @@ public class DepositsServiceImpl implements DepositsService {
             return "Deposit is not in pending state!";
         }
 
+        deposit.setAmount(depositAmount);
         deposit.setStatus(Deposits.DepositStatus.ACTIVE);
         deposit.setRequestStatus(Deposits.RequestStatus.APPROVED);
         depositsRepo.save(deposit);
@@ -64,7 +80,9 @@ public class DepositsServiceImpl implements DepositsService {
                 .orElseThrow(() -> new UserNotFoundException("Account not found for user"));
 
         recordTransaction(account, deposit.getAmount(),
-                mapDepositTypeToTransactionType(deposit.getDepositType()), "DEPOSIT-" + deposit.getDeposit_id());
+                mapDepositTypeToTransactionType(deposit.getDepositType()),
+                "DEPOSIT-" + deposit.getDeposit_id(),
+                Transactions.RequestStatus.APPROVED);
 
         return "Deposit approved and activated. ID: " + deposit.getDeposit_id();
     }
@@ -74,23 +92,31 @@ public class DepositsServiceImpl implements DepositsService {
         checkAdmin(adminId);
 
         Deposits deposit = getDeposit(depositId);
-        deposit.setStatus(Deposits.DepositStatus.PENDING);
-        deposit.setRequestStatus(Deposits.RequestStatus.NOTAPPLIED);
+        
+        
+        deposit.setStatus(Deposits.DepositStatus.REJECTED);
+        deposit.setRequestStatus(Deposits.RequestStatus.REJECTED);
         depositsRepo.save(deposit);
 
         return "Deposit request rejected. Customer may reapply.";
     }
 
-    @Override
-    public String requestDeleteDeposit(Long depositId, Integer userId) {
-        Deposits deposit = getDeposit(depositId);
-        if (deposit.getUser().getUser_id() != userId) {
-            throw new DepositNotFoundException("Deposit does not belong to this user");
-        }
-
+    @Override public String requestDeleteDeposit(Long depositId, Integer userId) {
+    	Deposits deposit = getDeposit(depositId); 
+    	if (deposit.getUser().getUser_id() != userId) {
+    		throw new DepositNotFoundException("Deposit does not belong to this user"); 
+    		}
 
         deposit.setRequestStatus(Deposits.RequestStatus.PENDING);
         depositsRepo.save(deposit);
+
+        Accounts account = accountsRepo.findFirstByUser(deposit.getUser())
+                .orElseThrow(() -> new UserNotFoundException("Account not found"));
+
+        recordTransaction(account, deposit.getAmount(),
+                Transactions.TransactionType.DEPOSIT,
+                "REQUEST-DELETE-" + deposit.getDeposit_id(),
+                Transactions.RequestStatus.PENDING);
 
         return "Delete request submitted. Awaiting admin approval.";
     }
@@ -104,7 +130,9 @@ public class DepositsServiceImpl implements DepositsService {
                 .orElseThrow(() -> new UserNotFoundException("Account not found for user"));
 
         recordTransaction(account, deposit.getAmount(),
-                Transactions.TransactionType.DEPOSIT, "DEPOSIT-DELETE-" + deposit.getDeposit_id());
+                Transactions.TransactionType.DEPOSIT,
+                "DEPOSIT-DELETE-" + deposit.getDeposit_id(),
+                Transactions.RequestStatus.APPROVED);
 
         depositsRepo.delete(deposit);
 
@@ -136,22 +164,38 @@ public class DepositsServiceImpl implements DepositsService {
     }
 
     private void recordTransaction(Accounts account, BigDecimal amount,
-                                   Transactions.TransactionType type, String beneficiaryAccount) {
+                                   Transactions.TransactionType type,
+                                   String beneficiaryAccount,
+                                   Transactions.RequestStatus requestStatus) {
         Transactions tx = new Transactions();
         tx.setAccount(account);
+        tx.setAmount(amount);
         tx.setAmount(amount);
         tx.setTimestamp(LocalDateTime.now());
         tx.setType(type);
         tx.setBeneficiaryAccount(beneficiaryAccount);
+        tx.setRequestStatus(requestStatus);
         transactionsRepo.save(tx);
     }
 
     private Transactions.TransactionType mapDepositTypeToTransactionType(Deposits.DepositType depositType) {
         switch (depositType) {
-            case FIXED: return Transactions.TransactionType.FIXED_DEPOSIT;
-            case RECURRING: return Transactions.TransactionType.RECURRING_DEPOSIT;
-            case SAVINGS: return Transactions.TransactionType.DEPOSIT;
-            default: return Transactions.TransactionType.DEPOSIT;
+            case FIXED:
+                return Transactions.TransactionType.FIXED_DEPOSIT;
+            case RECURRING:
+                return Transactions.TransactionType.RECURRING_DEPOSIT;
+            case SAVINGS:
+                return Transactions.TransactionType.DEPOSIT;
+            default:
+                return Transactions.TransactionType.DEPOSIT;
         }
     }
+    
+    @Override
+    public List<Deposits> getAllDeposits(Integer adminId) {
+        checkAdmin(adminId);
+        return depositsRepo.findAll();
+    }
+
+
 }

@@ -45,7 +45,7 @@ public class Deposits {
     }
 
     public enum DepositStatus {
-        PENDING,ACTIVE, MATURED, CLOSED
+        PENDING,ACTIVE, MATURED, CLOSED,REJECTED
     }
 
     public enum RequestStatus {

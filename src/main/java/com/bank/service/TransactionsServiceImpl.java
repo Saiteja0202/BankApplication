@@ -33,4 +33,10 @@ public class TransactionsServiceImpl implements TransactionsService {
         return transactionsRepo.findById(id)
                 .orElseThrow(() -> new TransactionNotFoundException("Transaction with ID " + id + " not found"));
     }
+    
+    @Override
+    public List<Transactions> getAllTransactions() {
+        return transactionsRepo.findAll();
+    }
+
 }

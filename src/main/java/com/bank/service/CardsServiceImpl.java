@@ -3,6 +3,7 @@ package com.bank.service;
 import com.bank.exception.CardNotFoundException;
 import com.bank.exception.UserNotFoundException;
 import com.bank.model.*;
+import com.bank.model.Transactions.RequestStatus;
 import com.bank.repository.*;
 
 import org.springframework.stereotype.Service;
@@ -88,7 +89,7 @@ public class CardsServiceImpl implements CardsService {
         checkAdmin(adminId);
 
         Cards card = getCard(cardId);
-        card.setRequestStatus(Cards.RequestStatus.NOTAPPLIED);
+        card.setRequestStatus(Cards.RequestStatus.REJECTED);
         card.setStatus(null);
         card.setCardNumber(null);
         cardsRepo.save(card);
@@ -171,6 +172,15 @@ public class CardsServiceImpl implements CardsService {
         tx.setTimestamp(LocalDateTime.now());
         tx.setType(type);
         tx.setBeneficiaryAccount(beneficiaryAccount);
+        tx.setRequestStatus(RequestStatus.PENDING);
         transactionsRepo.save(tx);
     }
+    
+    
+    @Override
+    public List<Cards> getAllCards(Integer adminId) {
+    	checkAdmin(adminId);
+        return cardsRepo.findAll();
+    }
+
 }

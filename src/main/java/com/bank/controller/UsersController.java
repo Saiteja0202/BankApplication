@@ -80,5 +80,24 @@ public class UsersController {
                                 @RequestBody Users updatedUser) {
         return usersServices.updateDetails(userId, updatedUser);
     }
+    
+    
+    
+    
+    @PostMapping("/generate-otp")
+    public String generateOtp(@RequestBody HashMap<String, String> request) {
+        String name = request.get("name");
+        String email = request.get("email");
+        return usersServices.generateOtp(name, email);
+    }
+
+
+    @PostMapping("/verify-otp")
+    public String verifyOtp(@RequestBody HashMap<String, String> request) {
+        String email = request.get("email");
+        int otp = Integer.parseInt(request.get("otp"));
+        return usersServices.verifyOtp(email, otp);
+    }
+
 	
 }

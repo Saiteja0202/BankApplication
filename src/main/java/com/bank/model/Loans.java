@@ -11,7 +11,7 @@ public class Loans {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long loan_id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
 

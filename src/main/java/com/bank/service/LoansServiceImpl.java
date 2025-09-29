@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.List;
 @Service
 public class LoansServiceImpl implements LoansService {
 
@@ -92,7 +93,6 @@ public class LoansServiceImpl implements LoansService {
 
         return "Loan request rejected by admin.";
     }
-
     @Override
     public String payInstallment(Long loanId, BigDecimal paidAmount) {
         Loans loan = loansRepo.findById(loanId)
@@ -103,10 +103,24 @@ public class LoansServiceImpl implements LoansService {
         }
 
         BigDecimal emi = loan.getEmi();
+        BigDecimal remaining = loan.getRemainingAmount();
+
+        // ✅ Case: Final payment — allow clearing remaining even if less than EMI
+        if (paidAmount.compareTo(remaining) >= 0) {
+            recordTransaction(loan, remaining, Transactions.TransactionType.LOAN_PAYMENT);
+            loan.setRemainingAmount(BigDecimal.ZERO);
+            loan.setStatus(Loans.LoanStatus.CLOSED);
+            loansRepo.save(loan);
+            return "Loan fully paid and closed!";
+        }
+
+        // ✅ Case: Partial payment but less than EMI (not final)
         if (paidAmount.compareTo(emi) < 0) {
             BigDecimal shortfall = emi.subtract(paidAmount);
             BigDecimal penalty = shortfall.multiply(BigDecimal.valueOf(0.02));
-            loan.setRemainingAmount(loan.getRemainingAmount().add(penalty));
+
+            loan.setRemainingAmount(remaining.add(penalty).subtract(paidAmount));
+
             recordTransaction(loan, paidAmount, Transactions.TransactionType.LOAN_PAYMENT);
             recordTransaction(loan, penalty, Transactions.TransactionType.INTEREST_CHARGE);
 
@@ -114,9 +128,9 @@ public class LoansServiceImpl implements LoansService {
             return "Partial payment done. Penalty added: " + penalty;
         }
 
-        loan.setRemainingAmount(loan.getRemainingAmount().subtract(paidAmount));
+        // ✅ Case: Normal EMI payment
+        loan.setRemainingAmount(remaining.subtract(paidAmount));
         recordTransaction(loan, paidAmount, Transactions.TransactionType.LOAN_PAYMENT);
-
 
         if (loan.getRemainingAmount().compareTo(BigDecimal.ZERO) <= 0) {
             loan.setStatus(Loans.LoanStatus.CLOSED);
@@ -125,6 +139,7 @@ public class LoansServiceImpl implements LoansService {
         loansRepo.save(loan);
         return "Payment successful. Remaining Loan Balance: " + loan.getRemainingAmount();
     }
+
 
     private void checkAdmin(Integer adminId) {
         Users admin = usersRepo.findById(adminId)
@@ -144,6 +159,7 @@ public class LoansServiceImpl implements LoansService {
         tx.setAmount(amount);
         tx.setTimestamp(LocalDateTime.now());
         tx.setBeneficiaryAccount("LOAN-" + loan.getLoan_id());
+        tx.setRequestStatus(Transactions.RequestStatus.ACTIVE);
         transactionsRepo.save(tx);
     }
 
@@ -157,4 +173,19 @@ public class LoansServiceImpl implements LoansService {
             default: return BigDecimal.valueOf(10);
         }
     }
+    
+    
+    @Override
+    public List<Loans> getAllLoans(Integer adminId) {
+        checkAdmin(adminId);
+        return loansRepo.findAll();  
+    }
+    
+    @Override
+    public List<Loans> getUserLoans(Integer userId) {
+        Users user = usersRepo.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+        return loansRepo.findByUser(user);
+    }
+
 }
