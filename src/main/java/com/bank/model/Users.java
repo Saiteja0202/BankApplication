@@ -66,11 +66,20 @@ public class Users {
 	public void setOTP(int oTP) {
 		OTP = oTP;
 	}
+	public enum OtpStatus {
+	    GENERATE, PENDING, VERIFIED, EXPIRED
+	}
+
+	@Enumerated(EnumType.STRING)
+	private OtpStatus otpStatus;
+
+	private LocalDateTime otpGeneratedAt;
 
 	public Users(int user_id, @NotBlank(message = "Name cannot be Blank") String name,
 			@NotBlank(message = "Email cannot be Blank") @Email(message = "Invalid email format") String email,
 			@NotBlank(message = "Password cannot be Blank") @Size(min = 8, message = "Password must be between 8 to 50 characters") String password,
-			String userToken, LocalDateTime generatedAt, UserRole userRole, KycStatus kycStatus, int oTP) {
+			String userToken, LocalDateTime generatedAt, UserRole userRole, KycStatus kycStatus, int oTP,
+			OtpStatus otpStatus, LocalDateTime otpGeneratedAt) {
 		super();
 		this.user_id = user_id;
 		this.name = name;
@@ -81,6 +90,16 @@ public class Users {
 		this.userRole = userRole;
 		this.kycStatus = kycStatus;
 		OTP = oTP;
+		this.otpStatus = otpStatus;
+		this.otpGeneratedAt = otpGeneratedAt;
+	}
+
+	public int getUser_id() {
+		return user_id;
+	}
+
+	public void setUser_id(int user_id) {
+		this.user_id = user_id;
 	}
 
 	public String getName() {
@@ -105,14 +124,6 @@ public class Users {
 
 	public void setPassword(String password) {
 		this.password = password;
-	}
-
-	public int getUser_id() {
-		return user_id;
-	}
-
-	public void setUser_id(int user_id) {
-		this.user_id = user_id;
 	}
 
 	public String getUserToken() {
@@ -147,15 +158,21 @@ public class Users {
 		this.kycStatus = kycStatus;
 	}
 
-	@Override
-	public String toString() {
-		return "Users [user_id=" + user_id + ", name=" + name + ", email=" + email + ", password=" + password
-				+ ", userToken=" + userToken + ", generatedAt=" + generatedAt + ", userRole=" + userRole
-				+ ", kycStatus=" + kycStatus + ", getName()=" + getName() + ", getEmail()=" + getEmail()
-				+ ", getPassword()=" + getPassword() + ", getUser_id()=" + getUser_id() + ", getUserToken()="
-				+ getUserToken() + ", getGeneratedAt()=" + getGeneratedAt() + ", getUserRole()=" + getUserRole()
-				+ ", getKycStatus()=" + getKycStatus() + ", getClass()=" + getClass() + ", hashCode()=" + hashCode()
-				+ ", toString()=" + super.toString() + "]";
+	public OtpStatus getOtpStatus() {
+		return otpStatus;
 	}
+
+	public void setOtpStatus(OtpStatus otpStatus) {
+		this.otpStatus = otpStatus;
+	}
+
+	public LocalDateTime getOtpGeneratedAt() {
+		return otpGeneratedAt;
+	}
+
+	public void setOtpGeneratedAt(LocalDateTime otpGeneratedAt) {
+		this.otpGeneratedAt = otpGeneratedAt;
+	}
+
 
 }

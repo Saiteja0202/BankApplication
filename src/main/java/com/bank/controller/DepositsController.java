@@ -57,4 +57,11 @@ public class DepositsController {
     public BigDecimal getDepositBalance(@PathVariable Long depositId) {
         return depositsService.getDepositBalance(depositId);
     }
+    
+    @GetMapping("/all/{adminId}")
+    public List<Deposits> getAllDeposits(@PathVariable Integer adminId) {
+        return depositsService.getAllDeposits(adminId);
+    }
+
+
 }

@@ -21,4 +21,8 @@ public interface DepositsService {
     List<Deposits> getUserDeposits(Integer userId);
 
     BigDecimal getDepositBalance(Long depositId);
+    
+    List<Deposits> getAllDeposits(Integer adminId);
+
+
 }

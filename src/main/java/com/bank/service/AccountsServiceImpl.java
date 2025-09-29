@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
+import java.util.List;
 import java.util.Locale;
 
 @Service
@@ -36,7 +37,7 @@ public class AccountsServiceImpl implements AccountsService {
 
         accountsRepo.save(account);
 
-        return "Account created successfully. Account Number: " + account.getAccountNumber();
+        return "Account created successfully. Account Number: " + account.getAccountNumber() +account.getAccount_id();
     }
 
     @Override
@@ -82,4 +83,15 @@ public class AccountsServiceImpl implements AccountsService {
         accountsRepo.delete(account);
         return "Account with number " + account.getAccountNumber() + " deleted successfully.";
     }
+    
+    
+    @Override
+    public List<Accounts> getAccountsByUser(Integer userId) {
+        Users user = usersRepo.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User with ID " + userId + " not found"));
+
+        return accountsRepo.findByUser(user); // Return even if empty
+    }
+
+
 }

@@ -17,5 +17,7 @@ public interface UsersService {
     public String deleteAccount(Integer userId);
     public String updatePassword(Integer userId, String oldPassword, String newPassword);
     public String updateDetails(Integer userId, Users updatedUser);
+    String verifyOtp(String email, int enteredOtp);
+    String generateOtp(String name, String email);
 
 }

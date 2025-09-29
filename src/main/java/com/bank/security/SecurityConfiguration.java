@@ -30,11 +30,12 @@ public class SecurityConfiguration {
                         "/cards/**",
                         "/deposits/**",
                         "/notifications/**",
-                        "/actuator/**"
+                        "/actuator/**",
+                        "/admin/**"
                 ).permitAll()
                 .anyRequest().authenticated()
-            )
-            .httpBasic(Customizer.withDefaults()); 
+            );
+          
 
         return http.build();
     }

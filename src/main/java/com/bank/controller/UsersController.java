@@ -34,6 +34,59 @@ public class UsersController {
 	}
 
 	@PostMapping("/admin/register")
+
+    public String registerAdmin(@RequestBody Users users) {
+        return usersServices.registerAdmin(users);
+    }
+
+    @PostMapping("/admin/login")
+    public HashMap<String, String> loginAdmin(@RequestBody Users users) {
+        return usersServices.loginAdmin(users);
+    }
+    
+    
+    
+    @PostMapping("/delete/{userId}")
+    public String deleteAccount(@PathVariable Integer userId) {
+        return usersServices.deleteAccount(userId);
+    }
+
+    @PutMapping("/password/{userId}")
+    public String updatePassword(@PathVariable Integer userId,
+                                 @RequestBody HashMap<String, String> request) {
+        String oldPassword = request.get("oldPassword");
+        String newPassword = request.get("newPassword");
+
+        return usersServices.updatePassword(userId, oldPassword, newPassword);
+    }
+
+
+
+    @PostMapping("/update-details/{userId}")
+    public String updateDetails(@PathVariable Integer userId,
+                                @RequestBody Users updatedUser) {
+        return usersServices.updateDetails(userId, updatedUser);
+    }
+    
+    
+    
+    
+    @PostMapping("/generate-otp")
+    public String generateOtp(@RequestBody HashMap<String, String> request) {
+        String name = request.get("name");
+        String email = request.get("email");
+        return usersServices.generateOtp(name, email);
+    }
+
+
+    @PostMapping("/verify-otp")
+    public String verifyOtp(@RequestBody HashMap<String, String> request) {
+        String email = request.get("email");
+        int otp = Integer.parseInt(request.get("otp"));
+        return usersServices.verifyOtp(email, otp);
+    }
+
+	
 	public String registerAdmin(@RequestBody Users users) {
 		return usersServices.registerAdmin(users);
 	}
@@ -60,5 +113,6 @@ public class UsersController {
 	public String updateDetails(@PathVariable Integer userId, @RequestBody Users updatedUser) {
 		return usersServices.updateDetails(userId, updatedUser);
 	}
+
 
 }

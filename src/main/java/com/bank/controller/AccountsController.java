@@ -3,6 +3,7 @@ package com.bank.controller;
 import com.bank.model.Accounts;
 import com.bank.service.AccountsService;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.web.bind.annotation.*;
@@ -36,4 +37,9 @@ public class AccountsController {
                                 @PathVariable Long accountId) {
         return accountsService.deleteAccount(userId, accountId);
     }
+    @GetMapping("/user/{userId}")
+    public List<Accounts> getAccountsByUser(@PathVariable Integer userId) {
+        return accountsService.getAccountsByUser(userId);
+    }
+
 }

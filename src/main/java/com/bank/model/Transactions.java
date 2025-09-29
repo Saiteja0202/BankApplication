@@ -52,6 +52,29 @@ public class Transactions {
         LOAN_PAYMENT,      
         INTEREST_CHARGE
     }
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "request_status", nullable = false)
+    private RequestStatus requestStatus;
+
+    public enum RequestStatus {
+        NOT_APPLIED,
+        PENDING,
+        APPROVED,
+        REJECTED,
+        ACTIVE,
+        CLOSED,
+        DEFAULTED
+    }
+
+    public RequestStatus getRequestStatus() {
+        return requestStatus;
+    }
+
+    public void setRequestStatus(RequestStatus requestStatus) {
+        this.requestStatus = requestStatus;
+    }
+
 
 	public Long getTransaction_id() {
 		return transaction_id;
@@ -106,7 +129,7 @@ public class Transactions {
 	}
 
 	public Transactions(Long transaction_id, Accounts account, TransactionType type, @NotNull BigDecimal amount,
-			LocalDateTime timestamp, String beneficiaryAccount) {
+			LocalDateTime timestamp, String beneficiaryAccount, RequestStatus requestStatus) {
 		super();
 		this.transaction_id = transaction_id;
 		this.account = account;
@@ -114,7 +137,10 @@ public class Transactions {
 		this.amount = amount;
 		this.timestamp = timestamp;
 		this.beneficiaryAccount = beneficiaryAccount;
+		this.requestStatus = requestStatus;
 	}
+
+	
 
    
 
